@@ -1,11 +1,42 @@
-<button onclick="abrirCuestionario()">Abrir cuestionario</button>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Presentación en clase</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f0f0f0;
+      text-align: center;
+      padding-top: 100px;
+    }
+    button {
+      font-size: 1.2em;
+      padding: 1em 2em;
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1565c0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Cuestionario de Historia de la Música</h1>
+  <p>Haz clic para abrir el cuestionario sin mostrar la URL.</p>
+  <button onclick="abrirCuestionario()">Abrir cuestionario</button>
 
-<script>
-function abrirCuestionario() {
-  window.open(
-    "https://cuestionario-musica.netlify.app/",
-    "Cuestionario",
-    "width=900,height=700,toolbar=no,menubar=no,scrollbars=no,resizable=no,location=no,status=no"
-  );
-}
-</script>
+  <script>
+    function abrirCuestionario() {
+      window.open(
+        "https://cuestionario-musica.netlify.app/",
+        "Cuestionario",
+        "width=900,height=700,toolbar=no,menubar=no,scrollbars=no,resizable=no,location=no,status=no"
+      );
+    }
+  </script>
+</body>
+</html>
