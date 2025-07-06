@@ -1,4 +1,3 @@
-  <script>
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTWaOkwY6kbuOSZki8LQxkvpa97vF1KSN5MCmFRr4tG13BFSvRsuSG_XPLDrxIiKDyIWtzB7k-6_vRI/pub?output=csv";
 
     let preguntasGlobales = [];
@@ -196,4 +195,3 @@
         else if (cuestionarioVisible) registrarRespuesta();
       }
     });
-  </script>
