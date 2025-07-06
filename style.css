@@ -1,1 +1,23 @@
-
+  <style>
+    /* Estilos idénticos a los originales */
+    body { font-family: 'Times New Roman', serif; background-color: #f4f9ff; color: #222; margin: 2em; }
+    #iconoEnlace { display: block; text-align: center; margin-bottom: 1em; }
+    #iconoCuestionario { width: 100px; transition: all 0.3s ease; }
+    #cuestionario #iconoCuestionario, #resultado #iconoCuestionario { width: 50px; margin-bottom: 0.5em; opacity: 0.8; }
+    .panel { max-width: 700px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); padding: 2em; }
+    h1 { text-align: center; color: #005dab; }
+    label, input, button { display: block; width: 100%; margin-bottom: 1em; }
+    input[type="number"], input[type="text"] { padding: 0.5em; font-size: 1em; border: 1px solid #ccc; border-radius: 4px; }
+    button { background-color: #005dab; color: white; font-weight: bold; border: none; padding: 0.7em; border-radius: 4px; cursor: pointer; }
+    .error-message { color: #b00020; font-size: 0.95em; background-color: #fbe9e7; border: 1px solid #ffccbc; padding: 0.5em; margin-bottom: 1em; border-radius: 4px; display: none; }
+    .question { margin-bottom: 2em; }
+    .question p { font-weight: bold; }
+    .options label { display: flex; align-items: flex-start; gap: 0.5em; margin: 4px 0 4px 1em; padding: 0.3em 0.5em; border-radius: 4px; transition: background-color 0.2s; }
+    .options input[type="radio"] { flex: 0 0 1.5em; margin-top: 0.2em; }
+    .options label.selected { background-color: #d0e7ff; }
+    .option-text { flex: 1; }
+    .nota { font-size: 0.9em; font-style: italic; color: #555; margin: 1em 1em 0 1em; }
+    .result { font-size: 1.1em; background-color: #e3f2fd; padding: 1em; border-radius: 6px; margin-top: 2em; }
+    .options label.correcta { background-color: #c8e6c9; }
+    .options label.incorrecta { background-color: #ffcdd2; }
+  </style>
