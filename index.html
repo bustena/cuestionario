@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <base target="_top">
+    <title>Cuestionario Historia de la Música</title>
+    <link rel="icon" type="image/png" href="https://bustena.wordpress.com/wp-content/uploads/2023/02/cropped-icon-piano.png">
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <style>
+      /* (Estilos idénticos al original, no modificados) */
+      body { font-family: 'Times New Roman', serif; background-color: #f4f9ff; color: #222; margin: 2em; }
+      #iconoEnlace { display: block; text-align: center; margin-bottom: 1em; }
+      #iconoCuestionario { width: 100px; transition: all 0.3s ease; }
+      #cuestionario #iconoCuestionario, #resultado #iconoCuestionario { width: 50px; margin-bottom: 0.5em; opacity: 0.8; }
+      .panel { max-width: 700px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); padding: 2em; }
+      h1 { text-align: center; color: #005dab; }
+      label, input, button { display: block; width: 100%; margin-bottom: 1em; }
+      input[type="number"], input[type="text"] { padding: 0.5em; font-size: 1em; border: 1px solid #ccc; border-radius: 4px; }
+      button { background-color: #005dab; color: white; font-weight: bold; border: none; padding: 0.7em; border-radius: 4px; cursor: pointer; }
+      .error-message { color: #b00020; font-size: 0.95em; background-color: #fbe9e7; border: 1px solid #ffccbc; padding: 0.5em; margin-bottom: 1em; border-radius: 4px; display: none; }
+      .question { margin-bottom: 2em; }
+      .question p { font-weight: bold; }
+      .options label { display: flex; align-items: flex-start; gap: 0.5em; margin: 4px 0 4px 1em; padding: 0.3em 0.5em; border-radius: 4px; transition: background-color 0.2s; }
+      .options input[type="radio"] { flex: 0 0 1.5em; margin-top: 0.2em; }
+      .options label.selected { background-color: #d0e7ff; }
+      .option-text { flex: 1; }
+      .nota { font-size: 0.9em; font-style: italic; color: #555; margin: 1em 1em 0 1em; }
+      .result { font-size: 1.1em; background-color: #e3f2fd; padding: 1em; border-radius: 6px; margin-top: 2em; }
+      .options label.correcta { background-color: #c8e6c9; }
+      .options label.incorrecta { background-color: #ffcdd2; }
+    </style>
+  </head>
+  <body>
+    <a href="https://bustena.wordpress.com/" target="_blank" id="iconoEnlace">
+      <img id="iconoCuestionario" src="https://bustena.wordpress.com/wp-content/uploads/2023/02/cropped-icon-piano.png" alt="Icono piano">
+    </a>
+
+    <div class="panel" id="inicio">
+      <h1>Cuestionario de Historia de la Música</h1>
+      <p style="font-size: 0.95em; text-align: justify; margin-bottom: 1.5em;">
+        <a href="https://bustena.wordpress.com/historia-de-la-musica-online/la-musica-en-la-edad-media/" target="_blank">Edad Media</a>, 
+        <a href="https://bustena.wordpress.com/historia-de-la-musica-online/la-musica-en-el-renacimiento-s-xv-xvi/" target="_blank">Renacimiento</a>, 
+        <a href="https://bustena.wordpress.com/historia-de-la-musica-online/la-musica-en-la-era-barroca/" target="_blank">Barroco</a>, 
+        <a href="https://bustena.wordpress.com/historia-de-la-musica-online/el-clasicismo-musical/" target="_blank">Clasicismo</a>, 
+        <a href="https://bustena.wordpress.com/historia-de-la-musica-online/el-siglo-xix/" target="_blank">Romanticismo</a>, 
+        <a href="https://bustena.wordpress.com/historia-de-la-musica-online/el-siglo-xx-y-la-era-del-sonido/" target="_blank">Siglo XX</a>, 
+        <a href="https://bustena.wordpress.com/historia-de-la-musica-online/vanguardia-y-cultura-popular-desde-la-guerra-fria-hasta-nuestros-dias/" target="_blank">Contemporánea</a>.
+      </p>
+
+      <div id="error" class="error-message"></div>
+
+      <label for="unidades">Unidades (ej: 1-4,6,8)</label>
+      <input type="text" id="unidades" placeholder="Ejemplo: 1-4,6,8">
+
+      <label for="numPreguntas">Número de preguntas</label>
+      <input type="number" id="numPreguntas" min="1">
+
+      <button id="btnComenzar">Comenzar cuestionario</button>
+    </div>
+
+    <div class="panel" id="cuestionario" style="display:none;"></div>
+    <div class="panel" id="resultado" style="display:none;"></div>
+
+    <script>
+      const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTWaOkwY6kbuOSZki8LQxkvpa97vF1KSN5MCmFRr4tG13BFSvRsuSG_XPLDrxIiKDyIWtzB7k-6_vRI/pub?output=csv";
+
+      let preguntasGlobales = [];
+      let indiceActual = 0;
+      let respuestasUsuario = [];
+      let puntosCorrecta = 0;
+      let puntosIncorrecta = 0;
+
+      function mostrarError(mensaje) {
+        const errorDiv = document.getElementById('error');
+        errorDiv.textContent = mensaje;
+        errorDiv.style.display = 'block';
+      }
+
+      function limpiarError() {
+        const errorDiv = document.getElementById('error');
+        errorDiv.style.display = 'none';
+        errorDiv.textContent = '';
+      }
+
+      function parseRangos(texto) {
+        const unidades = new Set();
+        texto.split(',').forEach(p => {
+          if (p.includes('-')) {
+            const [inicio, fin] = p.split('-').map(n => parseInt(n.trim()));
+            for (let i = inicio; i <= fin; i++) unidades.add(i.toString());
+          } else {
+            unidades.add(p.trim());
+          }
+        });
+        return unidades;
+      }
+
+      function comenzarCuestionario() {
+        limpiarError();
+        const btn = document.getElementById('btnComenzar');
+        btn.disabled = true;
+
+        const unidades = parseRangos(document.getElementById('unidades').value.trim());
+        const numPreguntas = parseInt(document.getElementById('numPreguntas').value);
+        if (unidades.size === 0 || isNaN(numPreguntas) || numPreguntas < 1) {
+          mostrarError('Introduce unidades válidas y un número de preguntas mayor que cero.');
+          btn.disabled = false;
+          return;
+        }
+
+        puntosCorrecta = +(10 / numPreguntas).toFixed(2);
+        puntosIncorrecta = +(-5 / numPreguntas).toFixed(2);
+
+        Papa.parse(CSV_URL, {
+          download: true,
+          header: true,
+          skipEmptyLines: true,
+          complete: function(results) {
+            const datos = results.data;
+            const preguntasFiltradas = datos.filter(p => unidades.has(p.unidad));
+            if (preguntasFiltradas.length === 0) {
+              mostrarError('No se encontraron preguntas para esas unidades.');
+              btn.disabled = false;
+              return;
+            }
+
+            preguntasFiltradas.sort(() => Math.random() - 0.5); // mezclar
+            preguntasGlobales = preguntasFiltradas.slice(0, numPreguntas).map(p => ({
+              pregunta: p.pregunta,
+              opciones: [p.a, p.b, p.c, p.d].filter(Boolean),
+              correcta: p.correcta.toLowerCase().trim()
+            }));
+
+            indiceActual = 0;
+            respuestasUsuario = [];
+            document.getElementById('inicio').style.display = 'none';
+            mostrarPregunta();
+            setTimeout(actualizarIcono, 100);
+          },
+          error: function() {
+            mostrarError('Error al cargar preguntas. Inténtalo de nuevo.');
+            btn.disabled = false;
+          }
+        });
+      }
+
+      function mostrarPregunta() {
+        const contenedor = document.getElementById('cuestionario');
+        contenedor.innerHTML = '';
+        const item = preguntasGlobales[indiceActual];
+        const bloque = document.createElement('div');
+        bloque.className = 'question';
+        bloque.innerHTML = `<p>${indiceActual + 1}. ${item.pregunta}</p>`;
+
+        const opcionesDiv = document.createElement('div');
+        opcionesDiv.className = 'options';
+
+        item.opciones.forEach((opcion, i) => {
+          const letra = String.fromCharCode(97 + i);
+          const label = document.createElement('label');
+          const input = document.createElement('input');
+          input.type = 'radio';
+          input.name = 'opcion';
+          input.value = letra;
+          input.addEventListener('change', () => {
+            document.querySelectorAll('.options label').forEach(l => l.classList.remove('selected'));
+            label.classList.add('selected');
+          });
+
+          const span = document.createElement('span');
+          span.className = 'option-text';
+          span.textContent = opcion;
+
+          label.appendChild(input);
+          label.appendChild(span);
+          opcionesDiv.appendChild(label);
+        });
+
+        bloque.appendChild(opcionesDiv);
+
+        const nota = document.createElement('div');
+        nota.className = 'nota';
+        nota.textContent = `Cada acierto suma ${puntosCorrecta}, cada fallo resta ${Math.abs(puntosIncorrecta)}. No contestar no puntúa.`;
+        bloque.appendChild(nota);
+
+        const btn = document.createElement('button');
+        btn.textContent = (indiceActual < preguntasGlobales.length - 1) ? 'Siguiente' : 'Enviar respuestas';
+        btn.onclick = registrarRespuesta;
+        bloque.appendChild(btn);
+
+        contenedor.appendChild(bloque);
+        contenedor.style.display = 'block';
+      }
+
+      function registrarRespuesta() {
+        const seleccionada = document.querySelector('input[name=opcion]:checked');
+        const seleccion = seleccionada ? seleccionada.value : null;
+        respuestasUsuario.push(seleccion);
+
+        const item = preguntasGlobales[indiceActual];
+        const correcta = item.correcta;
+
+        document.querySelectorAll('.options label').forEach(label => {
+          const input = label.querySelector('input');
+          if (input.value === correcta) label.classList.add('correcta');
+          else if (input.checked) label.classList.add('incorrecta');
+          input.disabled = true;
+        });
+
+        setTimeout(() => {
+          indiceActual++;
+          if (indiceActual < preguntasGlobales.length) {
+            mostrarPregunta();
+          } else {
+            document.getElementById('cuestionario').style.display = 'none';
+            mostrarResultado();
+            setTimeout(actualizarIcono, 100);
+          }
+        }, 1000);
+      }
+
+      function mostrarResultado() {
+        let aciertos = 0, fallos = 0;
+        preguntasGlobales.forEach((p, i) => {
+          const r = respuestasUsuario[i];
+          if (!r) return;
+          if (r === p.correcta) aciertos++;
+          else fallos++;
+        });
+        const puntuacion = aciertos * puntosCorrecta + fallos * puntosIncorrecta;
+
+        const div = document.getElementById('resultado');
+        const noContestadas = preguntasGlobales.length - aciertos - fallos;
+        div.innerHTML = `
+          <h1>Resultado</h1>
+          <div class="result">
+            <p><strong>Aciertos:</strong> ${aciertos}</p>
+            <p><strong>Fallos:</strong> ${fallos}</p>
+            <p><strong>No contestadas:</strong> ${noContestadas}</p>
+            <p><strong>Puntuación final:</strong> ${puntuacion.toFixed(2)} / 10</p>
+          </div>
+          <button onclick="location.reload()">Volver a empezar</button>
+        `;
+        div.style.display = 'block';
+      }
+
+      function actualizarIcono() {
+        const icono = document.getElementById("iconoCuestionario");
+        if (document.getElementById("inicio").style.display !== "none") icono.style.width = "100px";
+        else icono.style.width = "50px";
+      }
+
+      document.getElementById("btnComenzar").addEventListener("click", comenzarCuestionario);
+      document.addEventListener("DOMContentLoaded", actualizarIcono);
+      document.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+          const inicioVisible = document.getElementById("inicio").style.display !== "none";
+          const cuestionarioVisible = document.getElementById("cuestionario").style.display !== "none";
+          if (inicioVisible) comenzarCuestionario();
+          else if (cuestionarioVisible) registrarRespuesta();
+        }
+      });
+    </script>
+  </body>
+</html>
