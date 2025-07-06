@@ -140,4 +140,8 @@
   .options label.incorrecta {
     background-color: #ffcdd2;
   }
+* {
+  font-family: 'Fredoka', sans-serif !important;
+}
+
 </style>
