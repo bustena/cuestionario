@@ -142,3 +142,7 @@ button:hover {
 .options label.incorrecta {
   background-color: #ffcdd2;
 }
+
+#error:empty {
+  display: none !important;
+}
