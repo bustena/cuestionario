@@ -107,7 +107,7 @@
         skipEmptyLines: true,
         complete: function(results) {
           const datos = results.data;
-          const preguntasFiltradas = datos.filter(p => unidades.has(p.UNIDAD));
+          const preguntasFiltradas = datos.filter(p => unidades.has(String(p.UNIDAD).trim()));
           if (preguntasFiltradas.length === 0) {
             mostrarError('No se encontraron preguntas para esas unidades.');
             btn.disabled = false;
